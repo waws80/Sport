@@ -13,7 +13,7 @@ import com.baidu.mapapi.SDKInitializer;
 
 import java.util.List;
 
-import edu.sport.entity.UserInfo;
+import edu.sport.entity.Group;
 
 /**
  * 程序的入口类
@@ -25,14 +25,18 @@ public class MyApplication extends Application {
     public BDLocationListener myListener = new MyLocationListener();
 
     private static SharedPreferences mSharedPreferences;
+    private static SharedPreferences locationInfo;
+    private static SharedPreferences nowUserName;
 
     @Override
     public void onCreate() {
         super.onCreate();
         //初始化百度地图
         SDKInitializer.initialize(getApplicationContext());
-        //初始化个人信息配置文件
-        mSharedPreferences=getSharedPreferences("userInfo",MODE_PRIVATE);
+        //初始化用户群信息配置文件
+        mSharedPreferences=getSharedPreferences("group",MODE_PRIVATE);
+        locationInfo=getSharedPreferences("location",MODE_PRIVATE);
+        nowUserName=getSharedPreferences("username",MODE_PRIVATE);
         mLocationClient = new LocationClient(getApplicationContext());     //声明LocationClient类
         mLocationClient.registerLocationListener( myListener );    //注册监听函数
         initLocation();
@@ -61,10 +65,10 @@ public class MyApplication extends Application {
 
         @Override
         public void onReceiveLocation(BDLocation location) {
-            setUserInfo(UserInfo.LAT,location.getLatitude()+"");
-            setUserInfo(UserInfo.LNG,location.getLongitude()+"");
-            setUserInfo(UserInfo.LOCATION_ERROR,location.getLocType()+"");
-            setUserInfo(UserInfo.ADDRESS,location.getAddrStr());
+            setLocationInfo(Group.LAT,location.getLatitude()+"");
+            setLocationInfo(Group.LNG,location.getLongitude()+"");
+            setLocationInfo(Group.LOCATION_ERROR,location.getLocType()+"");
+            setLocationInfo(Group.ADDRESS,location.getAddrStr());
             //Receive Location
             StringBuffer sb = new StringBuffer(256);
             sb.append("time : ");
@@ -128,24 +132,53 @@ public class MyApplication extends Application {
     }
 
     /**
-     * 从文件中获取用户的某个信息
-     * @param key 属性名字
+     * 从文件中获取用户的密码
+     * @param username 当前用户的名字
      * @return 值
      */
-    public static String getUserInfo(String key){
-        return mSharedPreferences.getString("lat","");
+    public static String getUserPwd(String username){
+        return mSharedPreferences.getString(username,"");
     }
 
     /**
-     * 设置用户的某个信息到文件中
-     * @param key 属性名字
-     * @param value 值
+     * 设置用户的基本信息到文件中
+     * @param username 属性名字
+     * @param pass 值
      */
-    public static void setUserInfo(String key,String value){
-        mSharedPreferences.edit().putString(key, value).apply();
+    public static void setUserBaseInfo(String username,String pass){
+        mSharedPreferences.edit().putString(username, pass).apply();
     }
 
-    public static void cancelUserInfo(){
+    public static String getNowUserName(){
+        return nowUserName.getString(Group.USER_NAME,"");
+    }
+
+    public static void setNowUserName(String userName){
+        nowUserName.edit().putString(Group.USER_NAME,userName).apply();
+    }
+
+    /**
+     * 获取当前位置的某个信息
+     * @param key
+     * @return
+     */
+    public static String getLocationInfo(String key){
+        return locationInfo.getString(key,"");
+    }
+
+    /**
+     * 设置当前的位置信息
+     * @param key
+     * @param value
+     */
+    public static void setLocationInfo(String key,String value){
+        locationInfo.edit().putString(key, value).apply();
+    }
+
+    /**
+     * 清除程序中所有用户的基本信息
+     */
+    public static void cancelGroup(){
         mSharedPreferences.edit().clear().apply();
     }
 }
